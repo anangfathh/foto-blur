@@ -13,8 +13,10 @@ npm install
 npm run dev
 ```
 
-Buka `http://localhost:3000`, aktifkan kamera, lalu tunjukkan gesture V. Situs
-juga menyediakan blur manual, tombol ganti kamera, dan penyimpanan foto JPEG.
+Buka `http://localhost:3000`, aktifkan kamera, lalu tunjukkan gesture V. Feed
+live akan blur selama gesture terlihat dan kembali jernih saat tangan diturunkan.
+Situs juga menyediakan blur manual dan tombol ganti kamera, tanpa merekam atau
+menyimpan video maupun foto.
 
 ## Pemeriksaan
 

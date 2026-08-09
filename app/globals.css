@@ -522,25 +522,31 @@ button {
   left: 50%;
   bottom: clamp(20px, 3vw, 38px);
   transform: translateX(-50%);
-  display: grid;
-  grid-template-columns: 54px 76px 54px;
+  display: flex;
   align-items: center;
-  gap: clamp(18px, 3vw, 34px);
+  gap: 7px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(9, 11, 8, 0.5);
+  backdrop-filter: blur(18px);
 }
 
-.control-button,
-.shutter-button {
+.control-button {
   border: 0;
-  border-radius: 50%;
   cursor: pointer;
 }
 
 .control-button {
-  width: 54px;
-  height: 54px;
-  display: grid;
-  place-items: center;
+  min-width: 112px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 15px;
   border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
   background: rgba(12, 14, 10, 0.52);
   color: white;
   backdrop-filter: blur(14px);
@@ -552,11 +558,16 @@ button {
   background: rgba(31, 34, 27, 0.82);
 }
 
-.text-control span {
+.control-symbol {
   font-family: var(--font-geist-mono), monospace;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.08em;
+}
+
+.control-label {
+  font-size: 10px;
+  font-weight: 570;
 }
 
 .text-control[aria-pressed="true"] {
@@ -565,47 +576,9 @@ button {
   color: var(--ink);
 }
 
-.flip-control span {
-  font-size: 25px;
+.flip-control .control-symbol {
+  font-size: 20px;
   line-height: 1;
-}
-
-.shutter-button {
-  width: 76px;
-  height: 76px;
-  display: grid;
-  place-items: center;
-  border: 2px solid rgba(255, 255, 255, 0.86);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.shutter-button span {
-  width: 60px;
-  height: 60px;
-  display: block;
-  border-radius: 50%;
-  background: #f6f4eb;
-  transition: transform 120ms ease, background 120ms ease;
-}
-
-.shutter-button:active span {
-  transform: scale(0.87);
-  background: var(--acid);
-}
-
-.capture-flash {
-  position: absolute;
-  z-index: 20;
-  inset: 0;
-  pointer-events: none;
-  background: white;
-  opacity: 0;
-  transition: opacity 150ms ease-out;
-}
-
-.capture-flash.is-visible {
-  opacity: 0.72;
-  transition-duration: 30ms;
 }
 
 .model-warning {
@@ -756,24 +729,15 @@ button {
   }
 
   .camera-controls {
-    grid-template-columns: 46px 68px 46px;
-    gap: 22px;
+    gap: 5px;
+    padding: 5px;
     bottom: 19px;
   }
 
   .control-button {
-    width: 46px;
+    min-width: 102px;
     height: 46px;
-  }
-
-  .shutter-button {
-    width: 68px;
-    height: 68px;
-  }
-
-  .shutter-button span {
-    width: 54px;
-    height: 54px;
+    padding: 0 12px;
   }
 
   .camera-empty {

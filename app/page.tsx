@@ -90,7 +90,6 @@ export default function Home() {
   const [handVisible, setHandVisible] = useState(false);
   const [manualBlur, setManualBlur] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [flash, setFlash] = useState(false);
 
   const isBlurred = isGesture || manualBlur;
 
@@ -218,49 +217,6 @@ export default function Home() {
     void startCamera(nextFacingMode);
   };
 
-  const takePhoto = () => {
-    const video = videoRef.current;
-    if (!video || cameraState !== "active" || !video.videoWidth) return;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const context = canvas.getContext("2d");
-    if (!context) return;
-
-    if (facingMode === "user") {
-      context.translate(canvas.width, 0);
-      context.scale(-1, 1);
-    }
-
-    const blurPadding = isBlurred ? Math.round(canvas.width * 0.035) : 0;
-    context.filter = isBlurred ? "blur(22px) saturate(0.88)" : "none";
-    context.drawImage(
-      video,
-      -blurPadding,
-      -blurPadding,
-      canvas.width + blurPadding * 2,
-      canvas.height + blurPadding * 2,
-    );
-
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `vblur-${new Date().toISOString().replace(/[:.]/g, "-")}.jpg`;
-        link.click();
-        URL.revokeObjectURL(url);
-      },
-      "image/jpeg",
-      0.92,
-    );
-
-    setFlash(true);
-    window.setTimeout(() => setFlash(false), 180);
-  };
-
   const statusLabel = isGesture
     ? "V terdeteksi · blur aktif"
     : modelState === "loading"
@@ -283,8 +239,8 @@ export default function Home() {
           <p className="eyebrow">KAMERA GESTURE</p>
           <h1>Satu tanda kecil. Privasi seketika.</h1>
           <p className="lede">
-            Angkat telunjuk dan jari tengah membentuk <strong>V</strong>. Kamera akan
-            memburamkan gambar secara otomatis.
+            Angkat telunjuk dan jari tengah membentuk <strong>V</strong>. Tayangan
+            kamera live akan blur secara otomatis.
           </p>
         </section>
 
@@ -299,13 +255,13 @@ export default function Home() {
           </li>
           <li>
             <span className="step-number">03</span>
-            <span><strong>Blur otomatis</strong><small>Turunkan tangan untuk kembali</small></span>
+            <span><strong>Blur secara live</strong><small>Turunkan tangan agar kembali jernih</small></span>
           </li>
         </ol>
 
         <p className="privacy-note">
           <span className="lock-dot" aria-hidden="true" />
-          Diproses langsung di perangkatmu. Video tidak diunggah.
+          Diproses langsung di perangkatmu. Video tidak direkam atau diunggah.
         </p>
       </aside>
 
@@ -320,7 +276,6 @@ export default function Home() {
             aria-label="Tampilan kamera langsung"
           />
           <div className="ambient-grain" aria-hidden="true" />
-          <div className={`capture-flash ${flash ? "is-visible" : ""}`} aria-hidden="true" />
 
           <header className="camera-topbar">
             <div className={`status-pill ${isGesture ? "is-detected" : ""}`}>
@@ -338,7 +293,7 @@ export default function Home() {
               <p className="empty-kicker">PRIVASI DALAM SATU GESTURE</p>
               <h2>{cameraState === "error" ? "Kamera belum terhubung" : "Siap melihat tanda V?"}</h2>
               <p>
-                {errorMessage || "Berikan izin kamera untuk memulai. Kamu tetap memegang kendali penuh."}
+                {errorMessage || "Berikan izin kamera untuk memulai tayangan live. Video tidak direkam."}
               </p>
               <button
                 className="start-button"
@@ -374,15 +329,8 @@ export default function Home() {
                 aria-pressed={manualBlur}
                 aria-label={manualBlur ? "Matikan blur manual" : "Aktifkan blur manual"}
               >
-                <span>{manualBlur ? "ON" : "BLUR"}</span>
-              </button>
-              <button
-                className="shutter-button"
-                type="button"
-                onClick={takePhoto}
-                aria-label="Ambil foto"
-              >
-                <span />
+                <span className="control-symbol">{manualBlur ? "ON" : "BLUR"}</span>
+                <span className="control-label">Manual</span>
               </button>
               <button
                 className="control-button flip-control"
@@ -390,7 +338,8 @@ export default function Home() {
                 onClick={flipCamera}
                 aria-label="Ganti kamera depan atau belakang"
               >
-                <span aria-hidden="true">↻</span>
+                <span className="control-symbol" aria-hidden="true">↻</span>
+                <span className="control-label">Ganti kamera</span>
               </button>
             </div>
           )}

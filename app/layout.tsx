@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,11 +13,38 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "VBlur — Kamera Blur dengan Gesture V",
-  description:
-    "Kamera browser yang otomatis memburamkan gambar saat mendeteksi gesture dua jari berbentuk V.",
-};
+const title = "VBlur — Kamera Live dengan Gesture V";
+const description =
+  "Kamera browser live yang otomatis memburamkan tayangan saat mendeteksi gesture dua jari berbentuk V.";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const requestHeaders = await headers();
+  const host =
+    requestHeaders.get("x-forwarded-host") ??
+    requestHeaders.get("host") ??
+    "vblur-camera.qudoco.chatgpt.site";
+  const protocol =
+    requestHeaders.get("x-forwarded-proto") ??
+    (host.startsWith("localhost") ? "http" : "https");
+  const imageUrl = new URL("/og.png", `${protocol}://${host}`).toString();
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: "VBlur kamera live dengan gesture V" }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
+    },
+  };
+}
 
 export default function RootLayout({
   children,
