@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { stat } from "node:fs/promises";
 import test from "node:test";
 
 async function render() {
@@ -32,4 +33,19 @@ test("merender halaman kamera VBlur", async () => {
   assert.match(html, /Aktifkan kamera/);
   assert.match(html, /Satu tanda kecil/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
+});
+
+test("menyertakan model gesture secara lokal", async () => {
+  const assets = [
+    "../public/mediapipe/hand_landmarker.task",
+    "../public/mediapipe/wasm/vision_wasm_internal.js",
+    "../public/mediapipe/wasm/vision_wasm_internal.wasm",
+    "../public/mediapipe/wasm/vision_wasm_nosimd_internal.js",
+    "../public/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
+  ];
+
+  for (const asset of assets) {
+    const file = await stat(new URL(asset, import.meta.url));
+    assert.ok(file.size > 100_000, `${asset} tidak lengkap`);
+  }
 });

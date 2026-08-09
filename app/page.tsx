@@ -15,23 +15,8 @@ type HandLandmarkerInstance = {
   close: () => void;
 };
 
-type VisionModule = {
-  FilesetResolver: {
-    forVisionTasks: (path: string) => Promise<unknown>;
-  };
-  HandLandmarker: {
-    createFromOptions: (
-      fileset: unknown,
-      options: Record<string, unknown>,
-    ) => Promise<HandLandmarkerInstance>;
-  };
-};
-
-const VISION_VERSION = "0.10.22";
-const VISION_BUNDLE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VISION_VERSION}/vision_bundle.mjs`;
-const VISION_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VISION_VERSION}/wasm`;
-const HAND_MODEL =
-  "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+const VISION_WASM = "/mediapipe/wasm";
+const HAND_MODEL = "/mediapipe/hand_landmarker.task";
 
 function distance(a: Landmark, b: Landmark) {
   return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
@@ -79,6 +64,7 @@ export default function Home() {
   const landmarkerRef = useRef<HandLandmarkerInstance | null>(null);
   const animationRef = useRef<number | null>(null);
   const lastVideoTimeRef = useRef(-1);
+  const lastDetectionAtRef = useRef(0);
   const matchFramesRef = useRef(0);
   const missFramesRef = useRef(0);
   const isGestureRef = useRef(false);
@@ -98,20 +84,32 @@ export default function Home() {
 
     setModelState("loading");
     try {
-      const moduleUrl = VISION_BUNDLE;
-      const vision = (await import(/* @vite-ignore */ moduleUrl)) as VisionModule;
+      const vision = await import("@mediapipe/tasks-vision");
       const fileset = await vision.FilesetResolver.forVisionTasks(VISION_WASM);
-      landmarkerRef.current = await vision.HandLandmarker.createFromOptions(fileset, {
-        baseOptions: {
-          modelAssetPath: HAND_MODEL,
-          delegate: "GPU",
-        },
+      const options = {
+        baseOptions: { modelAssetPath: HAND_MODEL },
         runningMode: "VIDEO",
         numHands: 1,
         minHandDetectionConfidence: 0.55,
         minHandPresenceConfidence: 0.5,
         minTrackingConfidence: 0.5,
-      });
+      } as const;
+
+      try {
+        landmarkerRef.current = await vision.HandLandmarker.createFromOptions(
+          fileset,
+          {
+            ...options,
+            baseOptions: { ...options.baseOptions, delegate: "GPU" },
+          },
+        );
+      } catch (gpuError) {
+        console.warn("Akselerasi GPU tidak tersedia, beralih ke CPU", gpuError);
+        landmarkerRef.current = await vision.HandLandmarker.createFromOptions(
+          fileset,
+          options,
+        );
+      }
       setModelState("ready");
     } catch (error) {
       console.error("Gagal memuat detektor gesture", error);
@@ -171,23 +169,28 @@ export default function Home() {
       const landmarker = landmarkerRef.current;
 
       if (video && landmarker && video.readyState >= 2) {
-        if (lastVideoTimeRef.current !== video.currentTime) {
+        const now = performance.now();
+        if (
+          lastVideoTimeRef.current !== video.currentTime &&
+          now - lastDetectionAtRef.current >= 160
+        ) {
           lastVideoTimeRef.current = video.currentTime;
-          const result = landmarker.detectForVideo(video, performance.now());
+          lastDetectionAtRef.current = now;
+          const result = landmarker.detectForVideo(video, now);
           const hand = result.landmarks?.[0];
           setHandVisible(Boolean(hand));
 
           if (hand && isVictoryGesture(hand)) {
             matchFramesRef.current += 1;
             missFramesRef.current = 0;
-            if (matchFramesRef.current >= 3 && !isGestureRef.current) {
+            if (matchFramesRef.current >= 2 && !isGestureRef.current) {
               isGestureRef.current = true;
               setIsGesture(true);
             }
           } else {
             matchFramesRef.current = 0;
             missFramesRef.current += 1;
-            if (missFramesRef.current >= 7 && isGestureRef.current) {
+            if (missFramesRef.current >= 4 && isGestureRef.current) {
               isGestureRef.current = false;
               setIsGesture(false);
             }
@@ -350,7 +353,7 @@ export default function Home() {
         </div>
         <div className="mobile-hint">
           <span className={isGesture ? "active" : ""}>✌</span>
-          <p><strong>Tunjukkan tanda V</strong><small>Gambar akan blur otomatis</small></p>
+          <p><strong>Tunjukkan tanda V</strong><small>Tayangan live akan blur otomatis</small></p>
         </div>
       </section>
     </main>
