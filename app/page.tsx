@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 type CameraState = "idle" | "starting" | "active" | "error";
 type ModelState = "idle" | "loading" | "ready" | "error";
-type FacingMode = "user" | "environment";
 type Landmark = { x: number; y: number; z: number };
 
 type HandLandmarkerInstance = {
@@ -73,16 +72,12 @@ export default function Home() {
   const matchFramesRef = useRef(0);
   const missFramesRef = useRef(0);
   const isGestureRef = useRef(false);
+  const didAutoStartRef = useRef(false);
 
   const [cameraState, setCameraState] = useState<CameraState>("idle");
   const [modelState, setModelState] = useState<ModelState>("idle");
-  const [facingMode, setFacingMode] = useState<FacingMode>("user");
   const [isGesture, setIsGesture] = useState(false);
-  const [handVisible, setHandVisible] = useState(false);
-  const [manualBlur, setManualBlur] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const isBlurred = isGesture || manualBlur;
 
   const loadGestureModel = useCallback(async () => {
     if (landmarkerRef.current || modelState === "loading") return;
@@ -120,59 +115,57 @@ export default function Home() {
     } catch (error) {
       console.error("Gagal memuat detektor gesture", error);
       setModelState("error");
-      setErrorMessage(
-        "Deteksi gesture belum bisa dimuat. Gunakan blur manual untuk sementara.",
-      );
     }
   }, [modelState]);
 
-  const startCamera = useCallback(
-    async (nextFacingMode: FacingMode = facingMode) => {
-      setCameraState("starting");
-      setErrorMessage("");
-      setHandVisible(false);
-      setIsGesture(false);
-      isGestureRef.current = false;
-      matchFramesRef.current = 0;
-      missFramesRef.current = 0;
-      streamRef.current?.getTracks().forEach((track) => track.stop());
+  const startCamera = useCallback(async () => {
+    setCameraState("starting");
+    setErrorMessage("");
+    setIsGesture(false);
+    isGestureRef.current = false;
+    matchFramesRef.current = 0;
+    missFramesRef.current = 0;
+    streamRef.current?.getTracks().forEach((track) => track.stop());
 
-      if (!navigator.mediaDevices?.getUserMedia) {
-        setCameraState("error");
-        setErrorMessage("Browser ini belum mendukung akses kamera.");
-        return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraState("error");
+      setErrorMessage("Browser ini belum mendukung akses kamera.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: { ideal: "user" },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+      });
+
+      streamRef.current = stream;
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = stream;
+        await video.play();
       }
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            facingMode: { ideal: nextFacingMode },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-          },
-        });
+      setCameraState("active");
+      void loadGestureModel();
+    } catch (error) {
+      console.error("Gagal membuka kamera", error);
+      setCameraState("error");
+      setErrorMessage(
+        "Kamera tidak dapat dibuka. Izinkan akses kamera, lalu coba lagi.",
+      );
+    }
+  }, [loadGestureModel]);
 
-        streamRef.current = stream;
-        const video = videoRef.current;
-        if (video) {
-          video.srcObject = stream;
-          await video.play();
-        }
-
-        setFacingMode(nextFacingMode);
-        setCameraState("active");
-        void loadGestureModel();
-      } catch (error) {
-        console.error("Gagal membuka kamera", error);
-        setCameraState("error");
-        setErrorMessage(
-          "Kamera tidak dapat dibuka. Izinkan akses kamera, lalu coba lagi.",
-        );
-      }
-    },
-    [facingMode, loadGestureModel],
-  );
+  useEffect(() => {
+    if (didAutoStartRef.current) return;
+    didAutoStartRef.current = true;
+    void startCamera();
+  }, [startCamera]);
 
   useEffect(() => {
     if (cameraState !== "active" || modelState !== "ready") return;
@@ -191,7 +184,6 @@ export default function Home() {
           lastDetectionAtRef.current = now;
           const result = landmarker.detectForVideo(video, now);
           const hand = result.landmarks?.[0];
-          setHandVisible(Boolean(hand));
 
           if (hand && isVictoryGesture(hand)) {
             matchFramesRef.current += 1;
@@ -232,115 +224,25 @@ export default function Home() {
     };
   }, []);
 
-  const flipCamera = () => {
-    const nextFacingMode = facingMode === "user" ? "environment" : "user";
-    void startCamera(nextFacingMode);
-  };
-
-  const statusLabel = isGesture
-    ? "Blur aktif"
-    : modelState === "loading"
-      ? "Menyiapkan gesture"
-      : modelState === "error"
-        ? "Mode manual"
-        : handVisible
-          ? "Tangan terlihat"
-          : "Mencari gesture V";
-
   return (
-    <main className={`camera-app ${isBlurred ? "is-blurred" : ""}`}>
+    <main className={`camera-app ${isGesture ? "is-blurred" : ""}`}>
       <video
         ref={videoRef}
-        className={`camera-feed ${facingMode === "user" ? "is-mirrored" : ""}`}
+        className="camera-feed is-mirrored"
         autoPlay
         muted
         playsInline
         aria-label="Tampilan kamera live"
       />
-      <div className="camera-shade" aria-hidden="true" />
-
-      <header className="camera-header">
-        <span className="wordmark">VBLUR</span>
-        {cameraState === "active" && (
-          <p
-            className={`camera-status ${isGesture ? "is-active" : ""}`}
-            aria-live="polite"
-          >
-            <span aria-hidden="true" />
-            {statusLabel}
-          </p>
-        )}
-      </header>
-
-      {cameraState !== "active" && (
-        <section className="camera-onboarding" aria-labelledby="camera-title">
-          <div className="onboarding-mark" aria-hidden="true">V</div>
-          <h1 id="camera-title">
-            {cameraState === "error" ? "Kamera belum aktif" : "Kamera live."}
-          </h1>
-          <p>
-            {errorMessage ||
-              "Tunjukkan dua jari membentuk V untuk membuat tayangan blur."}
-          </p>
-          <button
-            className="start-camera"
-            type="button"
-            onClick={() => void startCamera()}
-            disabled={cameraState === "starting"}
-          >
-            {cameraState === "starting"
-              ? "Membuka kamera…"
-              : cameraState === "error"
-                ? "Coba lagi"
-                : "Buka kamera"}
-          </button>
-          <small>Diproses di perangkat · tidak direkam</small>
-        </section>
-      )}
-
-      {cameraState === "active" && (
-        <>
-          <div
-            className={`gesture-indicator ${isGesture ? "is-active" : ""}`}
-            aria-live="polite"
-          >
-            <span aria-hidden="true">V</span>
-            <p>{isGesture ? "BLUR" : handVisible ? "BUKA JARI" : "TUNJUKKAN V"}</p>
-          </div>
-
-          <footer className="camera-controls">
-            <button
-              className={`round-control ${manualBlur ? "is-active" : ""}`}
-              type="button"
-              onClick={() => setManualBlur((current) => !current)}
-              aria-pressed={manualBlur}
-              aria-label={manualBlur ? "Matikan blur manual" : "Aktifkan blur manual"}
-            >
-              <span aria-hidden="true">B</span>
-              <small>Blur</small>
-            </button>
-
-            <div className="live-state" aria-label="Kamera live, video tidak direkam">
-              <span aria-hidden="true" />
-              <strong>LIVE</strong>
-              <small>Tidak direkam</small>
-            </div>
-
-            <button
-              className="round-control"
-              type="button"
-              onClick={flipCamera}
-              aria-label="Ganti kamera depan atau belakang"
-            >
-              <span className="flip-symbol" aria-hidden="true">↻</span>
-              <small>Balik</small>
-            </button>
-          </footer>
-
-          {errorMessage && modelState === "error" && (
-            <p className="model-warning" role="status">{errorMessage}</p>
-          )}
-        </>
+      {cameraState === "error" && (
+        <button
+          className="camera-retry"
+          type="button"
+          onClick={() => void startCamera()}
+        >
+          <span>{errorMessage}</span>
+          Coba lagi
+        </button>
       )}
     </main>
   );

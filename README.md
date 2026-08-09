@@ -13,10 +13,18 @@ npm install
 npm run dev
 ```
 
-Buka `http://localhost:3000`, aktifkan kamera, lalu tunjukkan gesture V. Feed
-live akan blur selama gesture terlihat dan kembali jernih saat tangan diturunkan.
-Situs juga menyediakan blur manual dan tombol ganti kamera, tanpa merekam atau
-menyimpan video maupun foto.
+Buka `http://localhost:3000`, izinkan akses kamera, lalu tunjukkan gesture V.
+Feed live akan blur selama gesture terlihat dan kembali jernih saat tangan
+diturunkan. Tampilan tidak memiliki overlay dan tidak merekam atau menyimpan
+video maupun foto.
+
+## Menjalankan dengan Docker
+
+```bash
+docker compose up --build
+```
+
+Buka `http://localhost:3000`. Hentikan dengan `docker compose down`.
 
 ## Pemeriksaan
 

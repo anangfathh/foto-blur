@@ -1,0 +1,13 @@
+.git
+.gitignore
+.next
+.vinext
+.wrangler
+dist
+node_modules
+outputs
+work
+*.log
+*.tsbuildinfo
+.env
+.env.*
