@@ -33,6 +33,7 @@ test("merender halaman kamera VBlur", async () => {
   assert.match(html, /Tampilan kamera live/);
   assert.match(html, /Hidupkan kamera/);
   assert.match(html, /made by anangfath_/);
+  assert.match(html, /nose-sound\.mp3/);
   assert.doesNotMatch(html, /TUNJUKKAN V|Tidak direkam|Balik|Buka kamera/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
@@ -40,11 +41,21 @@ test("merender halaman kamera VBlur", async () => {
 test("menyertakan model gesture secara lokal", async () => {
   const assets = [
     "../public/mediapipe/hand_landmarker.task",
+    "../public/mediapipe/face_landmarker.task",
     "../public/mediapipe/wasm/vision_wasm_internal.js",
     "../public/mediapipe/wasm/vision_wasm_internal.wasm",
     "../public/mediapipe/wasm/vision_wasm_nosimd_internal.js",
     "../public/mediapipe/wasm/vision_wasm_nosimd_internal.wasm",
   ];
+
+  for (const asset of assets) {
+    const file = await stat(new URL(asset, import.meta.url));
+    assert.ok(file.size > 100_000, `${asset} tidak lengkap`);
+  }
+});
+
+test("menyertakan media efek hidung", async () => {
+  const assets = ["../public/cat-nose.webp", "../public/nose-sound.mp3"];
 
   for (const asset of assets) {
     const file = await stat(new URL(asset, import.meta.url));

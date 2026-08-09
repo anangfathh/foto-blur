@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 const title = "VBlur — Kamera Live Fullscreen dengan Gesture V";
 const description =
-  "Kamera browser live yang otomatis memburamkan tayangan saat mendeteksi gesture dua jari berbentuk V.";
+  "Kamera live yang memburamkan gesture V dan memicu efek kucing saat tangan menutup hidung.";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();

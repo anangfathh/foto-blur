@@ -30,6 +30,7 @@ button {
 
 .camera-feed {
   position: absolute;
+  z-index: 0;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -51,9 +52,33 @@ button {
   transform: scaleX(-1) scale(1.09);
 }
 
-.camera-toggle {
+.frozen-frame {
   position: absolute;
   z-index: 1;
+  inset: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  transform: scaleX(-1) scale(1.02);
+}
+
+.cat-effect {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 48%;
+  width: min(42vw, 250px);
+  aspect-ratio: 11 / 16;
+  transform: translate(-50%, -50%);
+  background: url("/cat-nose.webp") center / contain no-repeat;
+  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.42));
+  pointer-events: none;
+  animation: cat-appear 220ms ease-out both;
+}
+
+.camera-toggle {
+  position: absolute;
+  z-index: 3;
   left: 50%;
   bottom: max(26px, calc(env(safe-area-inset-bottom) + 18px));
   width: 68px;
@@ -100,6 +125,11 @@ button {
   cursor: wait;
 }
 
+.camera-toggle.is-effect-paused {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .camera-toggle.is-starting > span {
   width: 34px;
   height: 34px;
@@ -111,7 +141,7 @@ button {
 
 .creator-credit {
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   right: max(14px, calc(env(safe-area-inset-right) + 10px));
   bottom: max(16px, calc(env(safe-area-inset-bottom) + 10px));
   color: rgba(255, 255, 255, 0.58);
@@ -130,6 +160,25 @@ button {
   }
 }
 
+@keyframes cat-appear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.82);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@media (max-width: 520px) {
+  .cat-effect {
+    width: min(58vw, 230px);
+    top: 46%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .camera-feed,
   .camera-toggle,
@@ -138,6 +187,10 @@ button {
   }
 
   .camera-toggle.is-starting > span {
+    animation: none;
+  }
+
+  .cat-effect {
     animation: none;
   }
 }
