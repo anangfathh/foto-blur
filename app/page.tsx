@@ -507,10 +507,15 @@ export default function Home() {
       )}
       {isNoseEffectActive && (
         <div
-          className="cat-effect"
+          className="cat-corners"
           role="img"
-          aria-label="Kucing menari"
-        />
+          aria-label="Empat kucing menari di setiap sudut"
+        >
+          <span className="cat-corner cat-corner--top-left" />
+          <span className="cat-corner cat-corner--top-right" />
+          <span className="cat-corner cat-corner--bottom-left" />
+          <span className="cat-corner cat-corner--bottom-right" />
+        </div>
       )}
       <audio
         ref={audioRef}

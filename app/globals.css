@@ -59,21 +59,47 @@ button {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  transform: scaleX(-1) scale(1.02);
+  filter: blur(30px) saturate(0.72) brightness(0.68);
+  transform: scaleX(-1) scale(1.12);
 }
 
-.cat-effect {
+.cat-corners {
   position: absolute;
   z-index: 2;
-  left: 50%;
-  top: 48%;
-  width: min(42vw, 250px);
+  inset: 0;
+  pointer-events: none;
+}
+
+.cat-corner {
+  position: absolute;
+  width: clamp(105px, 16vw, 175px);
   aspect-ratio: 11 / 16;
-  transform: translate(-50%, -50%);
   background: url("/cat-nose.webp") center / contain no-repeat;
   filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.42));
-  pointer-events: none;
   animation: cat-appear 220ms ease-out both;
+}
+
+.cat-corner--top-left {
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+}
+
+.cat-corner--top-right {
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  animation-delay: 45ms;
+}
+
+.cat-corner--bottom-left {
+  bottom: max(10px, env(safe-area-inset-bottom));
+  left: max(10px, env(safe-area-inset-left));
+  animation-delay: 90ms;
+}
+
+.cat-corner--bottom-right {
+  right: max(10px, env(safe-area-inset-right));
+  bottom: max(10px, env(safe-area-inset-bottom));
+  animation-delay: 135ms;
 }
 
 .camera-toggle {
@@ -163,19 +189,18 @@ button {
 @keyframes cat-appear {
   from {
     opacity: 0;
-    transform: translate(-50%, -46%) scale(0.82);
+    transform: translateY(10px) scale(0.82);
   }
 
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
 @media (max-width: 520px) {
-  .cat-effect {
-    width: min(58vw, 230px);
-    top: 46%;
+  .cat-corner {
+    width: clamp(86px, 27vw, 122px);
   }
 }
 
@@ -190,7 +215,7 @@ button {
     animation: none;
   }
 
-  .cat-effect {
+  .cat-corner {
     animation: none;
   }
 }

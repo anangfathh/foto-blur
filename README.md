@@ -17,8 +17,9 @@ Buka `http://localhost:3000`, izinkan akses kamera, lalu tunjukkan gesture V.
 Feed live akan blur selama gesture terlihat dan kembali jernih saat tangan
 diturunkan. Tombol bulat di tengah bawah dapat digunakan untuk mematikan atau
 menyalakan kamera. Saat tangan menutup hidung, tayangan akan membeku sementara,
-menampilkan animasi kucing dan memainkan suara, lalu kamera kembali normal
-setelah audio selesai. Tampilan tidak merekam atau menyimpan video maupun foto.
+memburamkan latar, menampilkan animasi kucing di keempat sudut, dan memainkan
+suara. Kamera kembali normal setelah audio selesai. Tampilan tidak merekam atau
+menyimpan video maupun foto.
 
 ## Menjalankan dengan Docker
 

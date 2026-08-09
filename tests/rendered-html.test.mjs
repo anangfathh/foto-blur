@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
 async function render() {
@@ -61,4 +61,18 @@ test("menyertakan media efek hidung", async () => {
     const file = await stat(new URL(asset, import.meta.url));
     assert.ok(file.size > 100_000, `${asset} tidak lengkap`);
   }
+});
+
+test("menampilkan kucing di empat sudut dengan latar blur", async () => {
+  const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const styles = await readFile(
+    new URL("../app/globals.css", import.meta.url),
+    "utf8",
+  );
+
+  for (const corner of ["top-left", "top-right", "bottom-left", "bottom-right"]) {
+    assert.match(page, new RegExp(`cat-corner--${corner}`));
+  }
+
+  assert.match(styles, /\.frozen-frame\s*\{[^}]*filter:\s*blur\(/s);
 });
