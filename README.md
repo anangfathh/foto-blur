@@ -18,8 +18,9 @@ Feed live akan blur selama gesture terlihat dan kembali jernih saat tangan
 diturunkan. Tombol bulat di tengah bawah dapat digunakan untuk mematikan atau
 menyalakan kamera. Saat tangan menutup hidung, tayangan akan membeku sementara,
 memburamkan latar, menampilkan animasi kucing di keempat sudut, dan memainkan
-suara. Kamera kembali normal setelah audio selesai. Tampilan tidak merekam atau
-menyimpan video maupun foto.
+suara. Satu animasi kucing berukuran lebih besar juga muncul di tengah. Kamera
+kembali normal setelah audio selesai. Tampilan tidak merekam atau menyimpan
+video maupun foto.
 
 ## Menjalankan dengan Docker
 

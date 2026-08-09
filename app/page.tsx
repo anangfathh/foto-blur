@@ -509,12 +509,13 @@ export default function Home() {
         <div
           className="cat-corners"
           role="img"
-          aria-label="Empat kucing menari di setiap sudut"
+          aria-label="Empat kucing di sudut dan satu kucing besar di tengah"
         >
           <span className="cat-corner cat-corner--top-left" />
           <span className="cat-corner cat-corner--top-right" />
           <span className="cat-corner cat-corner--bottom-left" />
           <span className="cat-corner cat-corner--bottom-right" />
+          <span className="cat-center" />
         </div>
       )}
       <audio

@@ -63,7 +63,7 @@ test("menyertakan media efek hidung", async () => {
   }
 });
 
-test("menampilkan kucing di empat sudut dengan latar blur", async () => {
+test("menampilkan kucing di empat sudut dan tengah dengan latar blur", async () => {
   const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
   const styles = await readFile(
     new URL("../app/globals.css", import.meta.url),
@@ -74,5 +74,6 @@ test("menampilkan kucing di empat sudut dengan latar blur", async () => {
     assert.match(page, new RegExp(`cat-corner--${corner}`));
   }
 
+  assert.match(page, /className="cat-center"/);
   assert.match(styles, /\.frozen-frame\s*\{[^}]*filter:\s*blur\(/s);
 });
