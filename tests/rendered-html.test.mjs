@@ -30,8 +30,8 @@ test("merender halaman kamera VBlur", async () => {
 
   const html = await response.text();
   assert.match(html, /<title>VBlur/);
-  assert.match(html, /Aktifkan kamera/);
-  assert.match(html, /Satu tanda kecil/);
+  assert.match(html, /Buka kamera/);
+  assert.match(html, /Kamera live\./);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
 

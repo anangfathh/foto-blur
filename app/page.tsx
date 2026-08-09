@@ -26,9 +26,13 @@ function jointAngle(a: Landmark, b: Landmark, c: Landmark) {
   const ab = { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
   const cb = { x: c.x - b.x, y: c.y - b.y, z: c.z - b.z };
   const dot = ab.x * cb.x + ab.y * cb.y + ab.z * cb.z;
-  const length = Math.hypot(ab.x, ab.y, ab.z) * Math.hypot(cb.x, cb.y, cb.z);
+  const length =
+    Math.hypot(ab.x, ab.y, ab.z) * Math.hypot(cb.x, cb.y, cb.z);
+
   if (!length) return 0;
-  return (Math.acos(Math.max(-1, Math.min(1, dot / length))) * 180) / Math.PI;
+  return (
+    (Math.acos(Math.max(-1, Math.min(1, dot / length))) * 180) / Math.PI
+  );
 }
 
 function fingerIsExtended(
@@ -39,7 +43,8 @@ function fingerIsExtended(
 ) {
   const wrist = points[0];
   const straight = jointAngle(points[mcp], points[pip], points[tip]) > 150;
-  const reachesOut = distance(wrist, points[tip]) > distance(wrist, points[pip]) * 1.12;
+  const reachesOut =
+    distance(wrist, points[tip]) > distance(wrist, points[pip]) * 1.12;
   return straight && reachesOut;
 }
 
@@ -110,12 +115,13 @@ export default function Home() {
           options,
         );
       }
+
       setModelState("ready");
     } catch (error) {
       console.error("Gagal memuat detektor gesture", error);
       setModelState("error");
       setErrorMessage(
-        "Deteksi gesture belum bisa dimuat. Kamera tetap dapat dipakai dengan tombol blur manual.",
+        "Deteksi gesture belum bisa dimuat. Gunakan blur manual untuk sementara.",
       );
     }
   }, [modelState]);
@@ -124,6 +130,11 @@ export default function Home() {
     async (nextFacingMode: FacingMode = facingMode) => {
       setCameraState("starting");
       setErrorMessage("");
+      setHandVisible(false);
+      setIsGesture(false);
+      isGestureRef.current = false;
+      matchFramesRef.current = 0;
+      missFramesRef.current = 0;
       streamRef.current?.getTracks().forEach((track) => track.stop());
 
       if (!navigator.mediaDevices?.getUserMedia) {
@@ -137,16 +148,18 @@ export default function Home() {
           audio: false,
           video: {
             facingMode: { ideal: nextFacingMode },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
           },
         });
+
         streamRef.current = stream;
         const video = videoRef.current;
         if (video) {
           video.srcObject = stream;
           await video.play();
         }
+
         setFacingMode(nextFacingMode);
         setCameraState("active");
         void loadGestureModel();
@@ -154,7 +167,7 @@ export default function Home() {
         console.error("Gagal membuka kamera", error);
         setCameraState("error");
         setErrorMessage(
-          "Kamera tidak dapat dibuka. Izinkan akses kamera di browser, lalu coba lagi.",
+          "Kamera tidak dapat dibuka. Izinkan akses kamera, lalu coba lagi.",
         );
       }
     },
@@ -203,7 +216,9 @@ export default function Home() {
 
     animationRef.current = requestAnimationFrame(detect);
     return () => {
-      if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+      }
     };
   }, [cameraState, modelState]);
 
@@ -211,7 +226,9 @@ export default function Home() {
     return () => {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       landmarkerRef.current?.close();
-      if (animationRef.current !== null) cancelAnimationFrame(animationRef.current);
+      if (animationRef.current !== null) {
+        cancelAnimationFrame(animationRef.current);
+      }
     };
   }, []);
 
@@ -221,141 +238,110 @@ export default function Home() {
   };
 
   const statusLabel = isGesture
-    ? "V terdeteksi · blur aktif"
+    ? "Blur aktif"
     : modelState === "loading"
-      ? "Menyiapkan deteksi gesture"
+      ? "Menyiapkan gesture"
       : modelState === "error"
-        ? "Mode manual tersedia"
+        ? "Mode manual"
         : handVisible
-          ? "Tangan terlihat · bentuk huruf V"
+          ? "Tangan terlihat"
           : "Mencari gesture V";
 
   return (
-    <main className="app-shell">
-      <aside className="guide-panel">
-        <a className="brand" href="#camera" aria-label="VBlur — kembali ke kamera">
-          <span className="brand-mark">V</span>
-          <span>VBlur</span>
-        </a>
+    <main className={`camera-app ${isBlurred ? "is-blurred" : ""}`}>
+      <video
+        ref={videoRef}
+        className={`camera-feed ${facingMode === "user" ? "is-mirrored" : ""}`}
+        autoPlay
+        muted
+        playsInline
+        aria-label="Tampilan kamera live"
+      />
+      <div className="camera-shade" aria-hidden="true" />
 
-        <section className="intro-copy">
-          <p className="eyebrow">KAMERA GESTURE</p>
-          <h1>Satu tanda kecil. Privasi seketika.</h1>
-          <p className="lede">
-            Angkat telunjuk dan jari tengah membentuk <strong>V</strong>. Tayangan
-            kamera live akan blur secara otomatis.
+      <header className="camera-header">
+        <span className="wordmark">VBLUR</span>
+        {cameraState === "active" && (
+          <p
+            className={`camera-status ${isGesture ? "is-active" : ""}`}
+            aria-live="polite"
+          >
+            <span aria-hidden="true" />
+            {statusLabel}
           </p>
+        )}
+      </header>
+
+      {cameraState !== "active" && (
+        <section className="camera-onboarding" aria-labelledby="camera-title">
+          <div className="onboarding-mark" aria-hidden="true">V</div>
+          <h1 id="camera-title">
+            {cameraState === "error" ? "Kamera belum aktif" : "Kamera live."}
+          </h1>
+          <p>
+            {errorMessage ||
+              "Tunjukkan dua jari membentuk V untuk membuat tayangan blur."}
+          </p>
+          <button
+            className="start-camera"
+            type="button"
+            onClick={() => void startCamera()}
+            disabled={cameraState === "starting"}
+          >
+            {cameraState === "starting"
+              ? "Membuka kamera…"
+              : cameraState === "error"
+                ? "Coba lagi"
+                : "Buka kamera"}
+          </button>
+          <small>Diproses di perangkat · tidak direkam</small>
         </section>
+      )}
 
-        <ol className="steps" aria-label="Cara menggunakan VBlur">
-          <li>
-            <span className="step-number">01</span>
-            <span><strong>Hadap kamera</strong><small>Pastikan tangan terlihat utuh</small></span>
-          </li>
-          <li>
-            <span className="step-number">02</span>
-            <span><strong>Bentuk huruf V</strong><small>Buka jarak kedua ujung jari</small></span>
-          </li>
-          <li>
-            <span className="step-number">03</span>
-            <span><strong>Blur secara live</strong><small>Turunkan tangan agar kembali jernih</small></span>
-          </li>
-        </ol>
+      {cameraState === "active" && (
+        <>
+          <div
+            className={`gesture-indicator ${isGesture ? "is-active" : ""}`}
+            aria-live="polite"
+          >
+            <span aria-hidden="true">V</span>
+            <p>{isGesture ? "BLUR" : handVisible ? "BUKA JARI" : "TUNJUKKAN V"}</p>
+          </div>
 
-        <p className="privacy-note">
-          <span className="lock-dot" aria-hidden="true" />
-          Diproses langsung di perangkatmu. Video tidak direkam atau diunggah.
-        </p>
-      </aside>
+          <footer className="camera-controls">
+            <button
+              className={`round-control ${manualBlur ? "is-active" : ""}`}
+              type="button"
+              onClick={() => setManualBlur((current) => !current)}
+              aria-pressed={manualBlur}
+              aria-label={manualBlur ? "Matikan blur manual" : "Aktifkan blur manual"}
+            >
+              <span aria-hidden="true">B</span>
+              <small>Blur</small>
+            </button>
 
-      <section className="camera-section" id="camera" aria-label="Kamera VBlur">
-        <div className={`camera-frame ${isBlurred ? "is-blurred" : ""}`}>
-          <video
-            ref={videoRef}
-            className={`camera-feed ${facingMode === "user" ? "is-mirrored" : ""}`}
-            autoPlay
-            muted
-            playsInline
-            aria-label="Tampilan kamera langsung"
-          />
-          <div className="ambient-grain" aria-hidden="true" />
-
-          <header className="camera-topbar">
-            <div className={`status-pill ${isGesture ? "is-detected" : ""}`}>
-              <span className="status-dot" />
-              {statusLabel}
+            <div className="live-state" aria-label="Kamera live, video tidak direkam">
+              <span aria-hidden="true" />
+              <strong>LIVE</strong>
+              <small>Tidak direkam</small>
             </div>
-            <div className="live-chip"><span>LIVE</span></div>
-          </header>
 
-          {cameraState !== "active" && (
-            <div className="camera-empty">
-              <div className="gesture-orbit" aria-hidden="true">
-                <span className="gesture-hand">✌</span>
-              </div>
-              <p className="empty-kicker">PRIVASI DALAM SATU GESTURE</p>
-              <h2>{cameraState === "error" ? "Kamera belum terhubung" : "Siap melihat tanda V?"}</h2>
-              <p>
-                {errorMessage || "Berikan izin kamera untuk memulai tayangan live. Video tidak direkam."}
-              </p>
-              <button
-                className="start-button"
-                type="button"
-                onClick={() => void startCamera()}
-                disabled={cameraState === "starting"}
-              >
-                <span className="button-lens" aria-hidden="true" />
-                {cameraState === "starting" ? "Membuka kamera…" : cameraState === "error" ? "Coba lagi" : "Aktifkan kamera"}
-              </button>
-            </div>
-          )}
+            <button
+              className="round-control"
+              type="button"
+              onClick={flipCamera}
+              aria-label="Ganti kamera depan atau belakang"
+            >
+              <span className="flip-symbol" aria-hidden="true">↻</span>
+              <small>Balik</small>
+            </button>
+          </footer>
 
-          {cameraState === "active" && (
-            <div className="focus-guide" aria-hidden="true">
-              <span className="corner top-left" />
-              <span className="corner top-right" />
-              <span className="corner bottom-left" />
-              <span className="corner bottom-right" />
-              <div className={`gesture-feedback ${isGesture ? "is-active" : ""}`}>
-                <span>✌</span>
-                <small>{isGesture ? "BLUR AKTIF" : "BENTUK V"}</small>
-              </div>
-            </div>
-          )}
-
-          {cameraState === "active" && (
-            <div className="camera-controls">
-              <button
-                className="control-button text-control"
-                type="button"
-                onClick={() => setManualBlur((current) => !current)}
-                aria-pressed={manualBlur}
-                aria-label={manualBlur ? "Matikan blur manual" : "Aktifkan blur manual"}
-              >
-                <span className="control-symbol">{manualBlur ? "ON" : "BLUR"}</span>
-                <span className="control-label">Manual</span>
-              </button>
-              <button
-                className="control-button flip-control"
-                type="button"
-                onClick={flipCamera}
-                aria-label="Ganti kamera depan atau belakang"
-              >
-                <span className="control-symbol" aria-hidden="true">↻</span>
-                <span className="control-label">Ganti kamera</span>
-              </button>
-            </div>
-          )}
-
-          {cameraState === "active" && errorMessage && modelState === "error" && (
+          {errorMessage && modelState === "error" && (
             <p className="model-warning" role="status">{errorMessage}</p>
           )}
-        </div>
-        <div className="mobile-hint">
-          <span className={isGesture ? "active" : ""}>✌</span>
-          <p><strong>Tunjukkan tanda V</strong><small>Tayangan live akan blur otomatis</small></p>
-        </div>
-      </section>
+        </>
+      )}
     </main>
   );
 }
