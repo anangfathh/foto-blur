@@ -278,6 +278,7 @@ export default function Home() {
       >
         <span aria-hidden="true" />
       </button>
+      <small className="creator-credit">made by anangfath_</small>
     </main>
   );
 }

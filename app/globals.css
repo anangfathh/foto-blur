@@ -109,6 +109,21 @@ button {
   animation: camera-loading 700ms linear infinite;
 }
 
+.creator-credit {
+  position: absolute;
+  z-index: 1;
+  right: max(14px, calc(env(safe-area-inset-right) + 10px));
+  bottom: max(16px, calc(env(safe-area-inset-bottom) + 10px));
+  color: rgba(255, 255, 255, 0.58);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
 @keyframes camera-loading {
   to {
     transform: rotate(360deg);
