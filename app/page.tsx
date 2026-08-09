@@ -224,6 +224,40 @@ export default function Home() {
     };
   }, []);
 
+  const stopCamera = useCallback(() => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    setIsGesture(false);
+    isGestureRef.current = false;
+    matchFramesRef.current = 0;
+    missFramesRef.current = 0;
+    setCameraState("idle");
+    setErrorMessage("");
+  }, []);
+
+  const toggleCamera = () => {
+    if (cameraState === "active") {
+      stopCamera();
+      return;
+    }
+
+    void startCamera();
+  };
+
+  const cameraButtonLabel =
+    cameraState === "active"
+      ? "Matikan kamera"
+      : cameraState === "starting"
+        ? "Kamera sedang dinyalakan"
+        : errorMessage
+          ? `${errorMessage} Coba hidupkan kamera lagi`
+          : "Hidupkan kamera";
+
   return (
     <main className={`camera-app ${isGesture ? "is-blurred" : ""}`}>
       <video
@@ -234,16 +268,16 @@ export default function Home() {
         playsInline
         aria-label="Tampilan kamera live"
       />
-      {cameraState === "error" && (
-        <button
-          className="camera-retry"
-          type="button"
-          onClick={() => void startCamera()}
-        >
-          <span>{errorMessage}</span>
-          Coba lagi
-        </button>
-      )}
+      <button
+        className={`camera-toggle ${cameraState === "active" ? "is-active" : ""} ${cameraState === "starting" ? "is-starting" : ""}`}
+        type="button"
+        onClick={toggleCamera}
+        disabled={cameraState === "starting"}
+        aria-label={cameraButtonLabel}
+        title={cameraButtonLabel}
+      >
+        <span aria-hidden="true" />
+      </button>
     </main>
   );
 }

@@ -15,8 +15,8 @@ npm run dev
 
 Buka `http://localhost:3000`, izinkan akses kamera, lalu tunjukkan gesture V.
 Feed live akan blur selama gesture terlihat dan kembali jernih saat tangan
-diturunkan. Tampilan tidak memiliki overlay dan tidak merekam atau menyimpan
-video maupun foto.
+diturunkan. Tombol bulat di tengah bawah dapat digunakan untuk mematikan atau
+menyalakan kamera. Tampilan tidak merekam atau menyimpan video maupun foto.
 
 ## Menjalankan dengan Docker
 

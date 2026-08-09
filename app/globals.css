@@ -51,35 +51,78 @@ button {
   transform: scaleX(-1) scale(1.09);
 }
 
-.camera-retry {
+.camera-toggle {
   position: absolute;
   z-index: 1;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: 12px;
-  width: min(calc(100% - 48px), 380px);
-  padding: 18px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 999px;
-  background: rgba(10, 10, 10, 0.7);
-  color: white;
-  text-align: center;
+  bottom: max(26px, calc(env(safe-area-inset-bottom) + 18px));
+  width: 68px;
+  height: 68px;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.94);
+  border-radius: 50%;
+  background: rgba(8, 8, 8, 0.3);
   cursor: pointer;
-  backdrop-filter: blur(12px);
+  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(8px);
+  transition: transform 160ms ease, opacity 160ms ease;
 }
 
-.camera-retry span {
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 12px;
-  line-height: 1.4;
+.camera-toggle:hover {
+  transform: translateX(-50%) scale(1.05);
+}
+
+.camera-toggle:active {
+  transform: translateX(-50%) scale(0.96);
+}
+
+.camera-toggle > span {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.96);
+  transition: width 180ms ease, height 180ms ease, border-radius 180ms ease,
+    background 180ms ease;
+}
+
+.camera-toggle.is-active > span {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: #ff4f49;
+}
+
+.camera-toggle.is-starting {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.camera-toggle.is-starting > span {
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: white;
+  background: transparent;
+  animation: camera-loading 700ms linear infinite;
+}
+
+@keyframes camera-loading {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .camera-feed {
+  .camera-feed,
+  .camera-toggle,
+  .camera-toggle > span {
     transition: none;
+  }
+
+  .camera-toggle.is-starting > span {
+    animation: none;
   }
 }
